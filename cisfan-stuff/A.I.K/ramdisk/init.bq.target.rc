@@ -1,0 +1,154 @@
+import init.bq.common.rc
+import init.lct.factory.rc
+
+on boot
+    chmod 0644 /dev/goodix_fp
+    chown system system /dev/goodix_fp
+    setprop sys.fp.goodix 1
+    chmod 0777 /dev/cs_spi
+    chmod 0777 /dev/qseecom
+    chown system system /dev/cs_spi
+    chmod 0644 /dev/sunwave_fp
+    chown system system /dev/sunwave_fp
+    chown system system /sys/devices/soc/soc:flashlight/leds/flashlight-front/brightness
+    chmod 0660 /sys/devices/soc/soc:flashlight/leds/flashlight-front/brightness
+    chown system /sys/devices/soc/qpnp-flash-led-24/leds/led:torch_1/brightness
+    chmod 0664 /sys/devices/soc/qpnp-flash-led-24/leds/led:torch_1/brightness
+    chown system system /sys/devices/soc/qpnp-flash-led-24/leds/led:switch1/brightness
+    chmod 0664 /sys/devices/soc/qpnp-flash-led-24/leds/led:switch1/brightness
+    chown system system /sys/class/leds/led:torch_0/brightness
+    chmod 0664 /sys/class/leds/led:torch_0/brightness
+    chown system system /sys/class/leds/led:torch_1/brightness
+    chmod 0664  /sys/class/leds/led:torch_1/brightness
+    chown system system /sys/class/leds/led:switch/brightness
+    chmod 0664  /sys/class/leds/led:switch/brightness
+    chown system system /sys/class/leds/led:switch1/brightness
+    chmod 0664  /sys/class/leds/led:switch1/brightness
+    chmod  0664 /dev/block/mmcblk0p48
+    chown system system /sys/touchscreen/tp_capacitance_test_type
+    chmod 0664  /sys/touchscreen/tp_capacitance_test_type
+    chown system system /sys/bus/i2c/devices/3-0038/fts_test
+    chmod 0664  /sys/bus/i2c/devices/3-0038/fts_test
+    chown system system /proc/android_touch/self_test
+    chmod 0664  /proc/android_touch/self_test
+    
+    chmod 0666 /dev/fpsdev0
+    chown system system /dev/fpsdev0
+
+service cdfingerdaemon /system/bin/cdfingerdaemon
+    class main
+    user system
+    group system
+service fingerprintd /system/bin/fingerprintd
+    class late_start
+    user system
+    group system
+
+service gx_fpd /system/bin/gx_fpd
+    class late_start
+    user root
+    group root system
+    on property:sys.fp.goodix=1
+    start gx_fpd
+    on property:sys.fp.goodix=0
+    stop gx_fpd
+
+on post-fs-data
+# add for logd--start
+service sdlog /system/bin/sdlog
+    class main
+    user root
+    disabled
+    oneshot
+
+on property:persist.service.sdlog.enable=1
+    start sdlog
+    start logdumpd
+
+on property:persist.service.sdlog.enable=0
+    stop sdlog
+
+service sdlog_cf /system/bin/sdlog --copyfile
+    class main
+    user root
+    disabled
+    oneshot
+on property:sys.logcf=1
+    start sdlog_cf
+
+# add for logd--end
+
+##########for loopback test	
+service loopback_spk1 /system/bin/loopback.sh 1 1
+    user root
+    group root
+    disabled
+    oneshot
+	
+service loopback_spk0 /system/bin/loopback.sh 1 0
+    user root
+    group root
+    disabled
+    oneshot
+	
+service loopback_rec1 /system/bin/loopback.sh 2 1
+    user root
+    group root
+    disabled
+    oneshot
+	
+service loopback_rec0 /system/bin/loopback.sh 2 0
+    user root
+    group root
+    disabled
+    oneshot
+	
+service loopback_hand1 /system/bin/loopback.sh 3 1
+    user root
+    group root
+    disabled
+    oneshot
+	
+service loopback_hand0 /system/bin/loopback.sh 3 0
+    user root
+    group root
+    disabled
+    oneshot
+	
+service loopback_sec1 /system/bin/loopback.sh 4 1
+    user root
+    group root
+    disabled
+    oneshot
+	
+service loopback_sec0 /system/bin/loopback.sh 4 0
+    user root
+    group root
+    disabled
+    oneshot
+	
+on property:sys.loopback-spk=1
+    start loopback_spk1
+	
+on property:sys.loopback-spk=0
+    start loopback_spk0
+	
+on property:sys.loopback-rec=1
+    start loopback_rec1
+	
+on property:sys.loopback-rec=0
+    start loopback_rec0
+	
+on property:sys.loopback-mic1=1
+    start loopback_hand1
+	
+on property:sys.loopback-mic1=0
+    start loopback_hand0
+	
+on property:sys.loopback-mic2=1
+    start loopback_sec1
+	
+on property:sys.loopback-mic2=0
+    start loopback_sec0
+##########
+
